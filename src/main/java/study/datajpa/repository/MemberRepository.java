@@ -1,16 +1,16 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
 import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
 import javax.persistence.QueryHint;
 import java.util.List;
 
-public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepositoryCustom {
+public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepositoryCustom,JpaSpecificationExecutor<Member> {
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
     List<Member> findHelloBy();
@@ -46,4 +46,12 @@ public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepo
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Member> findLockByUsername(String username);
+
+    List<UsernameOnly> findProjectionsByUsername(@Param("username") String username);
+
+    @Query(value = "select * from member where username = ?", nativeQuery = true)
+    Member findByNativeQuery(String username);
+
+    @Query(value = "select m.mber_id as id, m.username, t.nameas teamName from member m left join team where username = ?", countQuery = "select count(*) from member",nativeQuery = true)
+    Page<MemberProjection> findByNativeProjection();
 }
